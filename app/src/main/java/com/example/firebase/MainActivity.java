@@ -1,5 +1,6 @@
 package com.example.firebase;
 
+import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 
 import android.os.Bundle;
@@ -8,7 +9,10 @@ import android.widget.Button;
 import android.widget.EditText;
 import android.widget.TextView;
 
+import com.google.firebase.database.DataSnapshot;
+import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.database.ValueEventListener;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -17,13 +21,14 @@ public class MainActivity extends AppCompatActivity {
     EditText editText1;
     EditText editText2;
     TextView textView;
+    User user;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        User user = new User();
+
         firebaseDatabase = FirebaseDatabase.getInstance();
 
         button = findViewById(R.id.button);
@@ -32,11 +37,59 @@ public class MainActivity extends AppCompatActivity {
         textView = findViewById(R.id.textView);
 
         button.setOnClickListener(v -> {
+            user = new User();
+
             String login = editText1.getText().toString();
-            firebaseDatabase.getReference("lastvvvLogin").setValue(login);
-            System.out.println(login);
+            String pass = editText2.getText().toString();
+
+            user.setPassword(pass);
+            user.setUserName(login);
+
+
+            loginUser();
+
+            registerNewUser();
+
+            firebaseDatabase.getReference("lastLogin").setValue(login);
         });
 
+        firebaseDatabase.getReference("lastLogin").addValueEventListener(new ValueEventListener() {
+            @Override
+            public void onDataChange(@NonNull DataSnapshot snapshot) {
+                String lastLogin = snapshot.getValue(String.class);
+                textView.setText(lastLogin);
+            }
+
+            @Override
+            public void onCancelled(@NonNull DatabaseError error) {
+
+            }
+        });
+
+    }
+
+    private void loginUser() {
+        firebaseDatabase.getReference("users").addListenerForSingleValueEvent(new ValueEventListener() {
+            @Override
+            public void onDataChange(@NonNull DataSnapshot snapshot) {
+                for (DataSnapshot childSnapshot : snapshot.getChildren()) {
+                    User serverUser = childSnapshot.getValue(User.class);
+                    onSignInSuccess();
+                }
+            }
+
+            @Override
+            public void onCancelled(@NonNull DatabaseError error) {
+
+            }
+        });
+    }
+
+    private void onSignInSuccess() {
+    }
+
+    private void registerNewUser() {
+        firebaseDatabase.getReference("users").push().setValue(user);
     }
 
 }
