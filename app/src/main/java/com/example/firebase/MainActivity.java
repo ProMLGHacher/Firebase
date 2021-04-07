@@ -3,16 +3,21 @@ package com.example.firebase;
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.ImageView;
 import android.widget.TextView;
 
+import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
+import com.google.firebase.storage.FirebaseStorage;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -20,8 +25,10 @@ public class MainActivity extends AppCompatActivity {
     Button button;
     EditText editText1;
     EditText editText2;
+    ImageView image;
     TextView textView;
     User user;
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -35,6 +42,7 @@ public class MainActivity extends AppCompatActivity {
         editText1 = findViewById(R.id.editTextTextPersonName2);
         editText2 = findViewById(R.id.editTextTextPersonName);
         textView = findViewById(R.id.textView);
+        image = findViewById(R.id.imageView);
 
         button.setOnClickListener(v -> {
             user = new User();
@@ -65,6 +73,17 @@ public class MainActivity extends AppCompatActivity {
 
             }
         });
+
+
+        FirebaseStorage.getInstance().getReference("images").child("userImage").child("test.jpg")
+                .getBytes(10* 1024 * 1024)
+                .addOnSuccessListener(new OnSuccessListener<byte[]>() {
+                    @Override
+                    public void onSuccess(byte[] bytes) {
+                        Bitmap bitmap = BitmapFactory.decodeByteArray(bytes, 0, bytes.length);
+                        image.setImageBitmap(bitmap);
+                    }
+                });
 
     }
 
